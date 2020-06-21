@@ -1,0 +1,35 @@
+Pflichtenheft:
+
+Einleitung
+
+Im folgenden Dokument wird der Wetterfrosch Alexa Skill erläutert. Die Funktionalitäten sowie Voraussetzungen des Skills. 
+Die Software ist ein Alexa skill für das Wetter. Bestehend aus einem Interaktionsmodell und einer Lambda Funktion.
+Die lambda Funktion wird in Python-Format geschrieben, das Interaktionsmodell ist ein JSON Dokument.
+
+Unter 2. finden Sie eine allgemeine Beschreibung des Wetterfroschs und unter 3. spezifische Anforderungen. 
+
+
+
+Allgemeine Beschreibungen des Wetterfrosch  
+
+Der Skill wird die Abfrage allgemeiner sowie spezifischer Wetterdaten ermöglichen. Allgemeine Wetterdaten werden das Abfragen des Wetters heute, der nächsten 7 Tage, des gestrigen Tages sowie des morgigen Tages umfassen. Die Angaben sollen die Mindesttemperatur nachts, die Höchsttemperatur tagsüber, der Grad der Bewölkung (sonnig, leicht bewölkt, bewölkt) und die Regenwahrscheinlichkeit abdecken.
+Sollte von Benutzer_innen kein  Datum  angegeben werden, für den das Wetter abgefragt werden soll, wird der Skill das Wetter für den aktuellen Tag abfragen.
+Zusätzlich zur spezifikation des Datums (heute, gestern, etc.) wird es möglich sein den Ort zu spezifizieren in dem eine Stadt genannt wird, andernfalls wird die Wetterabfrage für den Standort der Benutzer_innen erstellt. Sollte Alexa nicht auf diesen zugreifen können, wird er bei Benutzer_innen erfragt. Es wird  nicht möglich sein, nach den Wetterdaten eines Landes gesamt zu fragen.
+Spezifische Anfragen, die an den Skill gestellt werden können, sind Fragen nach Regen, beispielsweise indem gefragt wird, ob ein Schirm benötigt wird, Windstärke, Sonnenauf- und Untergang, Schnee und Temperatur.
+Nach jeder Abfrage der Benutzer_innen wird Alexa jedesmal die Benutzer_innen fragen, ob noch weitere Informationen über das Wetter erfragt werden möchten.
+
+Die zu erwartenden Benutzer_innen des Skills sind Menschen einer breiten Altersspanne, der Skill wird nicht speziell für die Benutzung durch Kinder oder Rentner ausgelegt. Des weiteren  brauchen Benutzer_innen ausreichende Kenntnisse der deutschen Sprache, da der Skill auf deutsch sein wird.
+
+
+
+Spezifische Anforderungen
+
+Die Nutzung des Wetterfroschs erfordert ein Amazon Alexa unterstützendes Gerät.
+Zum Informationserhalt wird auf die Openweather API zugegriffen. Ist Alexa der Standort bekannt, wird dieser als Default-Information genutzt. 
+Auf den Skill kann nur durch ein VUI zugegriffen werden, zurzeit ist keine implementierung eines GUI geplant. Außerdem ist die Nutzung des Wetterfroschs auf Alexa beschränkt. Innerhalb eines Dialogs wird es nicht möglich sein mehrere Request Intents zu behandeln. 
+Der Wetterfrosch soll auf User_innenanfragen (nach den in 2. spezifizierten erfragbaren Daten) die gewünschten Informationen liefern. Durch Modellierung gezielter Nachfragen soll die vollständige Erfüllung der User_innenbedürfnisse garantiert werden. Es wird die Möglichkeit geboten mehrere Informationen zum Wetter für ein bestimmtes Datum, sowie eine Wetterinformation (Regen, Temperatur, etc.) für mehrere Zeitpunkte zu erfragen. 
+User_innen sollen einen natürlichen Dialog mit dem Wetterfrosch führen können und gleichzeitig die gewünschten Informationen erhalten. Falls es nach einem Dialog noch offene Fragen gibt, soll es keine Vorbehalte geben einen weiteren Dialog mit dem System zu beginnen. 
+
+
+Autorinnen: Sara Derakhshani, Hannah Peuckmann
+datum: 21.06.2020
