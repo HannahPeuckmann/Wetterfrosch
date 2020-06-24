@@ -1,0 +1,25 @@
+24.06.2020 
+
+heute:
+- Erstellung des Interaktionsmodells und der Lambdafunktion erstmal mit einem simplen Intent, um die Interaktion der Beiden zu verstehen
+- Intent in JSON-Format geschrieben, nicht in der Developerkonsole
+- Vorläufig sind Ort und Datum notwendige Slots, weil noch nicht klar ist wie wir auf Standort und aktuelle Zeit zugreifen
+- Sollen später optional sein, deswegen erstmal kein Dialogmanagement, um Slots zu erfragen
+- Möglichkeit, dass sie nicht optional sein können offen halten (dass wir Dialogmanagement in diesem Fall machen müssen)
+- Beim Testen werden wir erstmal nicht auf die API zugreifen, sondern Antworten manuell schreiben
+
+Hausaufgaben:
+- H: WetterIntent in Lambdafunktion einbauen, Text für LaunchRequest schreiben, 
+- S: Regen/TemperaturIntent erstellen, Dialog für Ort- und Datumslot in JSON schreiben, überlegen wie Nachfragen in den Intents zusammengefasst werden können
+- beide: bei der Wetter API anmelden, Skill erstellen
+
+nächstes Mal:
+- Lambdafunktion
+- Erste Intents testen
+
+Offene Fragen + Überlegungen:
+- Intents: "scheint die Sonne heute" als Sample für WetterIntent, eigener Intent für Regen, Temperatur, Sonnenauf-/untergang
+- Fragen nach heute/morgen -> Uhrzeit; An welcher Stelle wird die Uhrzeit (davon abhängig die gewünschte Info aus der API) gehandelt 
+--> können wir richtung Ende behandeln
+
+
