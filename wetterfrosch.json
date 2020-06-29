@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "wetterfrosch",
+            "invocationName": "wetter frosch",
             "modelConfiguration": {
                 "fallbackIntentSensitivity": {
                     "level": "LOW"
@@ -25,11 +25,11 @@
                     "slots": [
                         {
                             "name": "ort",
-                            "type": "AMAZON.City",
+                            "type": "AMAZON.City"
                         },
                         {
                             "name": "tag",
-                            "type": "AMAZON.Date",                         
+                            "type": "AMAZON.DATE"
                         }
                     ],
                     "samples": [
