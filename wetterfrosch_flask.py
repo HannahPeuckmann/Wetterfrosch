@@ -1,6 +1,7 @@
 import logging
 import requests # for http request 
 import six
+import datetime
 from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
@@ -61,8 +62,14 @@ class WetterIntentHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> Response
         filled_slots = handler_input.request_envelope.request.intent.slots
         slot_values = get_slot_values(filled_slots)
+        ort = slot_values['ort']['resolved']
+        zeit = slot_values['tag']['resolved']
         print(slot_values)
-        speech_text = "Das Wetter in {} am {} ist sonnig.".format(slot_values['ort']['resolved'], slot_values['tag']['resolved'])
+        if ort == None:
+            ort = 'Berlin'
+        if zeit == None:
+            zeit = datetime.datetime.now().date()
+        speech_text = "Das Wetter in {} am {} ist sonnig.".format(ort, zeit)
 
         handler_input.response_builder.speak(speech_text).set_card(
             SimpleCard("wetter frosch", speech_text)).set_should_end_session(
