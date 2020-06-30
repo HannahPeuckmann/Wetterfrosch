@@ -33,6 +33,8 @@
                         }
                     ],
                     "samples": [
+                        "Wetter",
+                        "wie ist das Wetter",
                         "Wie ist das Wetter in {ort} {tag}",
                         "Wie ist das Wetter {tag} in {ort}",
                         "Wetter {ort} {tag}",
