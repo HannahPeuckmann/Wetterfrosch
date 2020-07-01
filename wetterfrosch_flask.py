@@ -1,6 +1,7 @@
 import logging
 import requests # for http request 
 import six
+import datetime
 from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
@@ -23,7 +24,6 @@ from ask_sdk_model import (
     Response, IntentRequest, DialogState, SlotConfirmationStatus, Slot)
 from ask_sdk_model.slu.entityresolution import StatusCode
 
-
 logging.basicConfig(filename='wetterfrosch_log.log',
                     level=logging.INFO,
                     format='%(asctime)s %(levelname)s: %(message)s'
@@ -37,6 +37,7 @@ sb = SkillBuilder()
 
 class LaunchRequestHandler(AbstractRequestHandler):
     """Handler for Skill Launch."""
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_request_type("LaunchRequest")(handler_input)
@@ -53,6 +54,7 @@ class LaunchRequestHandler(AbstractRequestHandler):
 
 class WetterIntentHandler(AbstractRequestHandler):
     """Handler for Wetter Intent."""
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("WetterIntent")(handler_input)
@@ -61,17 +63,38 @@ class WetterIntentHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> Response
         filled_slots = handler_input.request_envelope.request.intent.slots
         slot_values = get_slot_values(filled_slots)
+        ort = slot_values['ort']['resolved']
+        zeit = slot_values['tag']['resolved']
         print(slot_values)
-        speech_text = "Das Wetter in {} am {} ist sonnig.".format(slot_values['ort']['resolved'], slot_values['tag']['resolved'])
-
-        handler_input.response_builder.speak(speech_text).set_card(
-            SimpleCard("wetter frosch", speech_text)).set_should_end_session(
-            True) # vorerst True
+        if ort is None:
+            ort = 'Berlin'
+        if zeit is None:
+            zeit = datetime.datetime.now().date()
+        weather = build_url(api, api_key, ort)
+        try:
+            response = http_get(weather)
+            if response["main"]:
+                speech = ("Die Höchsttemperatur in {} liegt heute bei {} Grad."
+                          " Die Mindesttemperatur liegt bei {} Grad."
+                          " Gefühlt sind es {} Grad.".format(
+                              ort,
+                              celsius(response["main"]["temp_max"]),
+                              celsius(response["main"]["temp_min"]),
+                              celsius(response["main"]["feels_like"])))
+        except Exception as e:
+            speech = ('Tut mir leid, ich kann dir leider keine '
+                      f'Informationen über das Wetter in {ort} geben')
+            logging.info("Intent: {}: message: {}".format(
+                handler_input.request_envelope.request.intent.name, str(e)))
+        handler_input.response_builder.speak(speech).set_card(
+            SimpleCard("wetter frosch", speech)).set_should_end_session(
+                True)  # vorerst True
         return handler_input.response_builder.response
 
 
 class HelpIntentHandler(AbstractRequestHandler):
     """Handler for Help Intent."""
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("AMAZON.HelpIntent")(handler_input)
@@ -88,6 +111,7 @@ class HelpIntentHandler(AbstractRequestHandler):
 
 class CancelOrStopIntentHandler(AbstractRequestHandler):
     """Single handler for Cancel and Stop Intent."""
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return (is_intent_name("AMAZON.CancelIntent")(handler_input) or
@@ -107,6 +131,7 @@ class FallbackIntentHandler(AbstractRequestHandler):
     This handler will not be triggered except in that locale,
     so it is safe to deploy on any locale.
     """
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("AMAZON.FallbackIntent")(handler_input)
@@ -122,6 +147,7 @@ class FallbackIntentHandler(AbstractRequestHandler):
 
 class SessionEndedRequestHandler(AbstractRequestHandler):
     """Handler for Session End."""
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_request_type("SessionEndedRequest")(handler_input)
@@ -134,6 +160,7 @@ class SessionEndedRequestHandler(AbstractRequestHandler):
 # Request and Response Loggers
 class RequestLogger(AbstractRequestInterceptor):
     """Log the request envelope."""
+
     def process(self, handler_input):
         # type: (HandlerInput) -> None
         logging.info("Request Envelope: {}".format(
@@ -142,14 +169,18 @@ class RequestLogger(AbstractRequestInterceptor):
 
 class ResponseLogger(AbstractResponseInterceptor):
     """Log the response envelope."""
+
     def process(self, handler_input, response):
         # type: (HandlerInput, Response) -> None
         logging.info("Response: {}".format(response))
 
 
-#Data
+# Data
 
 required_slots = ['ort', 'tag']
+api = 'http://api.openweathermap.org/data/2.5/weather?q={}&APPID={}'
+api_key = 'abc529c6c26889bfddf81f5a845be3fe'
+
 
 # Utility functions
 def get_resolved_value(request, slot_name):
@@ -159,9 +190,11 @@ def get_resolved_value(request, slot_name):
         return (request.intent.slots[slot_name].resolutions.
                 resolutions_per_authority[0].values[0].value.name)
     except (AttributeError, ValueError, KeyError, IndexError, TypeError) as e:
-        logging.info("Couldn't resolve {} for request: {}".format(slot_name, request))
+        logging.info("Couldn't resolve {} for request: {}".format(slot_name,
+                                                                  request))
         logging.info(str(e))
         return None
+
 
 def get_slot_values(filled_slots):
     """Return slot values with additional info."""
@@ -199,6 +232,24 @@ def get_slot_values(filled_slots):
     return slot_values
 
 
+def build_url(api, key, location):
+    """Return options for HTTP Get call."""
+    url = api.format(location, key)
+    return url
+
+
+def http_get(url):
+    response = requests.get(url)
+    print(url)
+
+    if response.status_code < 200 or response.status_code >= 300:
+        response.raise_for_status()
+
+    return response.json()
+
+
+def celsius(kelvin):
+    return int(kelvin - 273.15)
 
 
 sb.add_request_handler(LaunchRequestHandler())
@@ -207,7 +258,6 @@ sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(FallbackIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())
-
 sb.add_global_request_interceptor(RequestLogger())
 sb.add_global_response_interceptor(ResponseLogger())
 
