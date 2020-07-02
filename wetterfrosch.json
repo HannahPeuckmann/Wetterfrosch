@@ -62,7 +62,32 @@
                         "gibt es Regen in {ort}",
                         "regnet es {tag}",
                         "wird es {tag} in {ort} regnen",
-                        "wird es {tag} regnen"
+                        "wird es {tag} regnen",
+                        "brauche ich einen Schirm",
+                        "regnet es draußen"
+                    ]
+                },
+                {
+                    "name": "SonnenuntergangIntent",
+                    "slots": [
+                        {
+                            "name": "sun",
+                            "type": "rise_set"
+                        },
+                        {
+                            "name": "ort",
+                            "type": "AMAZON.City"
+                        },
+                        {
+                            "name": "tag",
+                            "type": "AMAZON.DATE"
+                        }
+                    ],
+                    "samples": [
+                        "wann geht {tag} die Sonne {sun}",
+                        "wann geht {tag} in {ort} die Sonne {sun}",
+                        "Wann ist {sun}",
+                        "{sun}"
                     ]
                 },
                 {
@@ -74,7 +99,33 @@
                     "samples": []
                 }
             ],
-            "types": []
+            "types": [
+                {
+                    "name": "rise_set",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "Sonnenuntergang"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Sonnenaufgang"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "unter"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "auf"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     }
 }

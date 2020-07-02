@@ -1,7 +1,7 @@
 import logging
 import requests # for http request 
 import six
-import datetime
+from datetime import datetime
 from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
@@ -91,8 +91,60 @@ class WetterIntentHandler(AbstractRequestHandler):
                 True)  # vorerst True
         return handler_input.response_builder.response
 
+class SonnenuntergangIntentHandler(AbstractRequestHandler):
+    """Handler for Temperatur Intent"""
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        print(True)
+        return is_intent_name("SonnenuntergangIntent")(handler_input)
+
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        filled_slots = handler_input.request_envelope.request.intent.slots
+        slot_values = get_slot_values(filled_slots)
+        ort = slot_values['ort']['resolved']
+        zeit = slot_values['tag']['resolved']
+        richtung = slot_values['sun']['resolved']
+        time = None
+        print(slot_values)
+        if ort is None:
+            ort = 'Berlin'
+        if zeit is None:
+            zeit = datetime.datetime.now().date()
+        weather = build_url(api, api_key, ort)
+        try:
+            response = http_get(weather)
+            print(response)
+            if response["sys"]:
+                print(response)
+                if 'auf' in richtung:
+                    richtung = 'Sonnenaufgang'
+                    timestamp = response['sys']['sunrise']
+                    date = datetime.fromtimestamp(timestamp)
+                    time = date.time()
+                    time = time.strftime("%H:%M:%S")
+                else:
+                    richtung = 'Sonnenuntergang'
+                    timestamp = response['sys']['sunset']
+                    date = datetime.fromtimestamp(timestamp)
+                    time = date.time()
+                    time = time.strftime("%H:%M:%S")
+                speech = ('{} ist um {}'.format(richtung, time))
+        except Exception as e:
+            speech = ('Tut mir leid, ich kann dir leider keine '
+                      f'Informationen über die gewünschten Daten in {ort} geben')
+            logging.info("Intent: {}: message: {}".format(
+                handler_input.request_envelope.request.intent.name, str(e)))
+        handler_input.response_builder.speak(speech).set_card(
+            SimpleCard("wetter frosch", speech)).set_should_end_session(
+                True)  # vorerst True
+        return handler_input.response_builder.response
+
+
+
 class RegenIntentHandler(AbstractRequestHandler):
-    """Handler for Wetter Intent."""
+    """Handler for Regen Intent."""
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
@@ -132,6 +184,7 @@ class RegenIntentHandler(AbstractRequestHandler):
             SimpleCard("wetter frosch", speech)).set_should_end_session(
                 True)  # vorerst True
         return handler_input.response_builder.response
+
 
 
 class HelpIntentHandler(AbstractRequestHandler):
@@ -293,12 +346,14 @@ def http_get(url):
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(WetterIntentHandler())
 sb.add_request_handler(RegenIntentHandler())
+sb.add_request_handler(SonnenuntergangIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(FallbackIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())
 sb.add_global_request_interceptor(RequestLogger())
 sb.add_global_response_interceptor(ResponseLogger())
+
 
 # ---
 skill_adapter = SkillAdapter(
