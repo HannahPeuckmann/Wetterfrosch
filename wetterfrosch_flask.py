@@ -77,10 +77,10 @@ class WetterIntentHandler(AbstractRequestHandler):
                 speech = ("Die Höchsttemperatur in {} liegt heute bei {} Grad."
                           " Die Mindesttemperatur liegt bei {} Grad."
                           " Gefühlt sind es {} Grad.".format(
-                              ort,
-                              celsius(response["main"]["temp_max"]),
-                              celsius(response["main"]["temp_min"]),
-                              celsius(response["main"]["feels_like"])))
+                              response["name"],
+                              int(response["main"]["temp_max"]),
+                              int(response["main"]["temp_min"]),
+                              int(response["main"]["feels_like"])))
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über das Wetter in {ort} geben')
@@ -178,7 +178,7 @@ class ResponseLogger(AbstractResponseInterceptor):
 # Data
 
 required_slots = ['ort', 'tag']
-api = 'http://api.openweathermap.org/data/2.5/weather?q={}&APPID={}'
+api = 'http://api.openweathermap.org/data/2.5/weather?q={}&lang=de&units=metric&APPID={}'
 api_key = 'abc529c6c26889bfddf81f5a845be3fe'
 
 
@@ -246,10 +246,6 @@ def http_get(url):
         response.raise_for_status()
 
     return response.json()
-
-
-def celsius(kelvin):
-    return int(kelvin - 273.15)
 
 
 sb.add_request_handler(LaunchRequestHandler())
