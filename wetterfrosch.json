@@ -43,6 +43,29 @@
                     ]
                 },
                 {
+                    "name": "RegenIntent",
+                    "slots": [
+                        {
+                            "name": "ort",
+                            "type": "AMAZON.City"
+                        },
+                        {
+                            "name": "tag",
+                            "type": "AMAZON.DATE"
+                        }
+                    ],
+                    "samples": [
+                        "Regen",
+                        "regnet es {tag} in {ort}",
+                        "gibt es {tag} Regen in {ort}",
+                        "regnet es in {ort}",
+                        "gibt es Regen in {ort}",
+                        "regnet es {tag}",
+                        "wird es {tag} in {ort} regnen",
+                        "wird es {tag} regnen"
+                    ]
+                },
+                {
                     "name": "AMAZON.FallbackIntent",
                     "samples": []
                 },

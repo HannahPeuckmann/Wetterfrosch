@@ -91,6 +91,48 @@ class WetterIntentHandler(AbstractRequestHandler):
                 True)  # vorerst True
         return handler_input.response_builder.response
 
+class RegenIntentHandler(AbstractRequestHandler):
+    """Handler for Wetter Intent."""
+
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        return is_intent_name("RegenIntent")(handler_input)
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        filled_slots = handler_input.request_envelope.request.intent.slots
+        slot_values = get_slot_values(filled_slots)
+        ort = slot_values['ort']['resolved']
+        zeit = slot_values['tag']['resolved']
+        print(slot_values)
+        if ort is None:
+            ort = 'Berlin'
+        if zeit is None:
+            zeit = datetime.datetime.now().date()
+        weather = build_url(api, api_key, ort)
+        try:
+            response = http_get(weather)
+            if response["weather"]:
+                if response["weather"][0]['main'] == 'Rain':
+                    speech = ('Heute regnet es in {}. '
+                              'Die genaue Vorhersage lautet {}'.format(
+                                  response["name"],
+                                  response["weather"][0]['description']))
+                else:
+                    speech = ('Heute regnet es nicht in {}. '
+                              'Die genaue Vorhersage lautet {}'.format(
+                                  response["name"],
+                                  response["weather"][0]['description']))
+        except Exception as e:
+            speech = ('Tut mir leid, ich kann dir leider keine '
+                      f'Informationen über das Wetter in {ort} geben')
+            logging.info("Intent: {}: message: {}".format(
+                handler_input.request_envelope.request.intent.name, str(e)))
+        handler_input.response_builder.speak(speech).set_card(
+            SimpleCard("wetter frosch", speech)).set_should_end_session(
+                True)  # vorerst True
+        return handler_input.response_builder.response
+
 
 class HelpIntentHandler(AbstractRequestHandler):
     """Handler for Help Intent."""
