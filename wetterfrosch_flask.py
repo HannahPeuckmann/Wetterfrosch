@@ -292,6 +292,7 @@ def http_get(url):
 
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(WetterIntentHandler())
+sb.add_request_handler(RegenIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(FallbackIntentHandler())
