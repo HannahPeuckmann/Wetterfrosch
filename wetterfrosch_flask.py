@@ -77,10 +77,52 @@ class WetterIntentHandler(AbstractRequestHandler):
                 speech = ("Die Höchsttemperatur in {} liegt heute bei {} Grad."
                           " Die Mindesttemperatur liegt bei {} Grad."
                           " Gefühlt sind es {} Grad.".format(
-                              ort,
-                              celsius(response["main"]["temp_max"]),
-                              celsius(response["main"]["temp_min"]),
-                              celsius(response["main"]["feels_like"])))
+                              response["name"],
+                              int(response["main"]["temp_max"]),
+                              int(response["main"]["temp_min"]),
+                              int(response["main"]["feels_like"])))
+        except Exception as e:
+            speech = ('Tut mir leid, ich kann dir leider keine '
+                      f'Informationen über das Wetter in {ort} geben')
+            logging.info("Intent: {}: message: {}".format(
+                handler_input.request_envelope.request.intent.name, str(e)))
+        handler_input.response_builder.speak(speech).set_card(
+            SimpleCard("wetter frosch", speech)).set_should_end_session(
+                True)  # vorerst True
+        return handler_input.response_builder.response
+
+class RegenIntentHandler(AbstractRequestHandler):
+    """Handler for Wetter Intent."""
+
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        return is_intent_name("RegenIntent")(handler_input)
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        filled_slots = handler_input.request_envelope.request.intent.slots
+        slot_values = get_slot_values(filled_slots)
+        ort = slot_values['ort']['resolved']
+        zeit = slot_values['tag']['resolved']
+        print(slot_values)
+        if ort is None:
+            ort = 'Berlin'
+        if zeit is None:
+            zeit = datetime.datetime.now().date()
+        weather = build_url(api, api_key, ort)
+        try:
+            response = http_get(weather)
+            if response["weather"]:
+                if response["weather"][0]['main'] == 'Rain':
+                    speech = ('Heute regnet es in {}. '
+                              'Die genaue Vorhersage lautet {}'.format(
+                                  response["name"],
+                                  response["weather"][0]['description']))
+                else:
+                    speech = ('Heute regnet es nicht in {}. '
+                              'Die genaue Vorhersage lautet {}'.format(
+                                  response["name"],
+                                  response["weather"][0]['description']))
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über das Wetter in {ort} geben')
@@ -178,7 +220,7 @@ class ResponseLogger(AbstractResponseInterceptor):
 # Data
 
 required_slots = ['ort', 'tag']
-api = 'http://api.openweathermap.org/data/2.5/weather?q={}&APPID={}'
+api = 'http://api.openweathermap.org/data/2.5/weather?q={}&lang=de&units=metric&APPID={}'
 api_key = 'abc529c6c26889bfddf81f5a845be3fe'
 
 
@@ -248,12 +290,9 @@ def http_get(url):
     return response.json()
 
 
-def celsius(kelvin):
-    return int(kelvin - 273.15)
-
-
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(WetterIntentHandler())
+sb.add_request_handler(RegenIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(FallbackIntentHandler())
