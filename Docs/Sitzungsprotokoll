@@ -23,3 +23,15 @@ Offene Fragen + Überlegungen:
 --> können wir richtung Ende behandeln
 
 
+04.07.2020
+
+heute:
+- Besprechung des aktuellen Stands
+- Planung des weiteren Vorgehens
+- Entscheidung wahrscheinlich keinen Default-Standort zu benutzen (Adress-Daten können nicht abgefragt werden)
+--> Durch Dialogmanagement den Slot füllen
+
+Hausaufgaben:
+- H: Dialog für Ort-Slot entwickeln
+- S: API-Anfrage für andere Tage als den aktuellen
+
