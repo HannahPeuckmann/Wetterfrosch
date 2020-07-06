@@ -25,7 +25,11 @@
                     "slots": [
                         {
                             "name": "ort",
-                            "type": "AMAZON.City"
+                            "type": "AMAZON.City",
+                            "samples": [
+                                "{ort}",
+                                "für {ort}"
+                            ]
                         },
                         {
                             "name": "tag",
@@ -33,8 +37,8 @@
                         }
                     ],
                     "samples": [
-                        "Wetter",
-                        "wie ist das Wetter",
+                        "Wetter {ort}",
+                        "wie ist das Wetter {ort}",
                         "Wie ist das Wetter in {ort} {tag}",
                         "Wie ist das Wetter {tag} in {ort}",
                         "Wetter {ort} {tag}",
@@ -47,7 +51,11 @@
                     "slots": [
                         {
                             "name": "ort",
-                            "type": "AMAZON.City"
+                            "type": "AMAZON.City",
+                            "samples": [
+                                "{ort}",
+                                "für {ort}"
+                            ]
                         },
                         {
                             "name": "tag",
@@ -60,11 +68,11 @@
                         "gibt es {tag} Regen in {ort}",
                         "regnet es in {ort}",
                         "gibt es Regen in {ort}",
-                        "regnet es {tag}",
+                        "regnet es {tag} {ort}",
                         "wird es {tag} in {ort} regnen",
-                        "wird es {tag} regnen",
-                        "brauche ich einen Schirm",
-                        "regnet es draußen"
+                        "wird es {tag} regnen {ort}",
+                        "brauche ich einen Schirm {ort}",
+                        "regnet es draußen {ort}"
                     ]
                 },
                 {
@@ -76,7 +84,11 @@
                         },
                         {
                             "name": "ort",
-                            "type": "AMAZON.City"
+                            "type": "AMAZON.City",
+                            "samples": [
+                                "für {ort}",
+                                "{ort}"
+                            ]
                         },
                         {
                             "name": "tag",
@@ -84,10 +96,9 @@
                         }
                     ],
                     "samples": [
-                        "wann geht {tag} die Sonne {sun}",
+                        "wann geht {tag} {ort} die Sonne {sun}",
                         "wann geht {tag} in {ort} die Sonne {sun}",
-                        "Wann ist {sun}",
-                        "{sun}"
+                        "Wann ist {sun} {ort}"
                     ]
                 },
                 {
@@ -126,6 +137,116 @@
                     ]
                 }
             ]
-        }
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "WetterIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "ort",
+                            "type": "AMAZON.City",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.145520297777.1101974968116"
+                            }
+                        },
+                        {
+                            "name": "tag",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                },
+                {
+                    "name": "RegenIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "ort",
+                            "type": "AMAZON.City",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1064227800555.1047861685870"
+                            }
+                        },
+                        {
+                            "name": "tag",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                },
+                {
+                    "name": "SonnenuntergangIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "sun",
+                            "type": "rise_set",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        },
+                        {
+                            "name": "ort",
+                            "type": "AMAZON.City",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.684383198440.51924554509"
+                            }
+                        },
+                        {
+                            "name": "tag",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                }
+            ],
+            "delegationStrategy": "ALWAYS"
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Slot.145520297777.1101974968116",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Bitte nenne eine Stadt für die das Wetter abgefragt werden soll"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1064227800555.1047861685870",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Bitte nenne eine Stadt, für die du die Regenvorhersage abfragen möchtest"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.684383198440.51924554509",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Für welche Stadt soll ich suchen?"
+                    }
+                ]
+            }
+        ]
     }
 }
