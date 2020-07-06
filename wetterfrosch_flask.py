@@ -1,14 +1,17 @@
 import logging
-import requests # for http request 
+import requests # for http request
 import six
-from datetime import datetime
+import datetime
 from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
 
+from ask_sdk_model.services import ServiceException
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
 from ask_sdk_core.utils import is_request_type, is_intent_name
 from ask_sdk_core.handler_input import HandlerInput
+
+from ask_sdk_model.ui import AskForPermissionsConsentCard # permission for location 
 
 from ask_sdk_model.ui import SimpleCard
 from ask_sdk_model import Response
@@ -51,13 +54,35 @@ class LaunchRequestHandler(AbstractRequestHandler):
             False)
         return handler_input.response_builder.response
 
+class InProgressIntentHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+        return (is_intent_name("RegenIntent" or "WetterIntent" or "SonnenuntergangIntent")(handler_input)
+                and handler_input.request_envelope.request.dialog_state != DialogState.COMPLETED)
+
+    def handle(self, handler_input):
+        current_intent = handler_input.request_envelope.request.intent
+        for slot_name, current_slot in six.iteritems(
+            current_intent.slots):
+            if slot_name == "ort":
+                print(True)
+                if (current_slot.confirmation_status != SlotConfirmationStatus.CONFIRMED
+                        and current_slot.resolutions
+                        and current_slot.resolutions.resolutions_per_authority[0]):
+                    if current_slot.resolutions.resolutions_per_authority[0].status.code == StatusCode.ER_SUCCESS_MATCH:
+                        return handler_input.response_builder.add_directive(
+                                ElicitSlotDirective(slot_to_elicit=current_slot.name)
+                                ).response
+                else:
+                    print(current_slot.confirmation_status)
+
 
 class WetterIntentHandler(AbstractRequestHandler):
     """Handler for Wetter Intent."""
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
-        return is_intent_name("WetterIntent")(handler_input)
+        return (is_intent_name("WetterIntent")(handler_input)
+            and handler_input.request_envelope.request.dialog_state == DialogState.COMPLETED)
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -65,9 +90,7 @@ class WetterIntentHandler(AbstractRequestHandler):
         slot_values = get_slot_values(filled_slots)
         ort = slot_values['ort']['resolved']
         zeit = slot_values['tag']['resolved']
-        print(slot_values)
-        if ort is None:
-            ort = 'Berlin'
+        logging.info(slot_values)
         if zeit is None:
             zeit = datetime.datetime.now().date()
         weather = build_url(api, api_key, ort)
@@ -88,14 +111,13 @@ class WetterIntentHandler(AbstractRequestHandler):
                 handler_input.request_envelope.request.intent.name, str(e)))
         handler_input.response_builder.speak(speech).set_card(
             SimpleCard("wetter frosch", speech)).set_should_end_session(
-                True)  # vorerst True
+                False)  # vorerst True
         return handler_input.response_builder.response
 
 class SonnenuntergangIntentHandler(AbstractRequestHandler):
     """Handler for Temperatur Intent"""
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
-        print(True)
         return is_intent_name("SonnenuntergangIntent")(handler_input)
 
 
@@ -107,30 +129,27 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
         zeit = slot_values['tag']['resolved']
         richtung = slot_values['sun']['resolved']
         time = None
-        print(slot_values)
-        if ort is None:
-            ort = 'Berlin'
+        logging.info(slot_values)
         if zeit is None:
             zeit = datetime.datetime.now().date()
         weather = build_url(api, api_key, ort)
         try:
             response = http_get(weather)
-            print(response)
+            logging.info(response)
             if response["sys"]:
-                print(response)
                 if 'auf' in richtung:
                     richtung = 'Sonnenaufgang'
                     timestamp = response['sys']['sunrise']
-                    date = datetime.fromtimestamp(timestamp)
+                    date = datetime.datetime.fromtimestamp(timestamp)
                     time = date.time()
-                    time = time.strftime("%H:%M:%S")
+                    time = time.strftime("%H:%M")
                 else:
                     richtung = 'Sonnenuntergang'
                     timestamp = response['sys']['sunset']
-                    date = datetime.fromtimestamp(timestamp)
+                    date = datetime.datetime.fromtimestamp(timestamp)
                     time = date.time()
-                    time = time.strftime("%H:%M:%S")
-                speech = ('{} ist um {}'.format(richtung, time))
+                    time = time.strftime("%H:%M")
+                speech = ('{} in {} ist um {}'.format(richtung, ort, time))
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über die gewünschten Daten in {ort} geben')
@@ -138,7 +157,7 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
                 handler_input.request_envelope.request.intent.name, str(e)))
         handler_input.response_builder.speak(speech).set_card(
             SimpleCard("wetter frosch", speech)).set_should_end_session(
-                True)  # vorerst True
+                False)  # vorerst True
         return handler_input.response_builder.response
 
 
@@ -156,9 +175,7 @@ class RegenIntentHandler(AbstractRequestHandler):
         slot_values = get_slot_values(filled_slots)
         ort = slot_values['ort']['resolved']
         zeit = slot_values['tag']['resolved']
-        print(slot_values)
-        if ort is None:
-            ort = 'Berlin'
+        logging.info(slot_values)
         if zeit is None:
             zeit = datetime.datetime.now().date()
         weather = build_url(api, api_key, ort)
@@ -182,7 +199,7 @@ class RegenIntentHandler(AbstractRequestHandler):
                 handler_input.request_envelope.request.intent.name, str(e)))
         handler_input.response_builder.speak(speech).set_card(
             SimpleCard("wetter frosch", speech)).set_should_end_session(
-                True)  # vorerst True
+                False)  # vorerst True
         return handler_input.response_builder.response
 
 
@@ -335,7 +352,7 @@ def build_url(api, key, location):
 
 def http_get(url):
     response = requests.get(url)
-    print(url)
+    logging.info(url)
 
     if response.status_code < 200 or response.status_code >= 300:
         response.raise_for_status()
@@ -345,6 +362,7 @@ def http_get(url):
 
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(WetterIntentHandler())
+sb.add_request_handler(InProgressIntentHandler())
 sb.add_request_handler(RegenIntentHandler())
 sb.add_request_handler(SonnenuntergangIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
