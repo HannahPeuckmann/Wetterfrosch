@@ -43,7 +43,11 @@
                         "Wie ist das Wetter {tag} in {ort}",
                         "Wetter {ort} {tag}",
                         "{tag} {ort}",
-                        "{ort} {tag}"
+                        "{ort} {tag}",
+                        "wie wird das Wetter {ort}",
+                        "Wie wird das Wetter in {ort} {tag}",
+                        "Wie wird das Wetter {tag} in {ort}"
+                        
                     ]
                 },
                 {
@@ -98,7 +102,8 @@
                     "samples": [
                         "wann geht {tag} {ort} die Sonne {sun}",
                         "wann geht {tag} in {ort} die Sonne {sun}",
-                        "Wann ist {sun} {ort}"
+                        "Wann ist {sun} {ort}",
+                        "Wann wird die Sonne {sun} gehen"
                     ]
                 },
                 {
