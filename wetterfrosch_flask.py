@@ -27,6 +27,8 @@ from ask_sdk_model import (
     Response, IntentRequest, DialogState, SlotConfirmationStatus, Slot)
 from ask_sdk_model.slu.entityresolution import StatusCode
 
+from geopy.geocoders import Nominatim
+
 logging.basicConfig(filename='wetterfrosch_log.log',
                     level=logging.INFO,
                     format='%(asctime)s %(levelname)s: %(message)s'
@@ -91,19 +93,55 @@ class WetterIntentHandler(AbstractRequestHandler):
         ort = slot_values['ort']['resolved']
         zeit = slot_values['tag']['resolved']
         logging.info(slot_values)
+        
+        # Get longitude and latitude for API call
+        geolocator = Nominatim(user_agent='Wetterfrosch')
+        location = geolocator.geocode(ort)
+        lat = None
+        lon = None
+        if location is not None:
+            lat = location.latitude
+            lon = location.longitude
         if zeit is None:
             zeit = datetime.datetime.now().date()
-        weather = build_url(api, api_key, ort)
+        weather = build_url(onecall_api, api_key, lat, lon)
+        # If zeit is not None, zeit is a string
+        # To compare the time slot to the API timestamp to find right entry:
+        # Cast zeit to datetime object
+        if type(zeit) == str:
+            Y, M, D = zeit.split('-')
+            zeit = datetime.datetime(int(Y),int(M),int(D)).date()
         try:
             response = http_get(weather)
-            if response["main"]:
-                speech = ("Die Höchsttemperatur in {} liegt heute bei {} Grad."
-                          " Die Mindesttemperatur liegt bei {} Grad."
-                          " Gefühlt sind es {} Grad.".format(
-                              response["name"],
-                              int(response["main"]["temp_max"]),
-                              int(response["main"]["temp_min"]),
-                              int(response["main"]["feels_like"])))
+            logging.info(response)
+            if response["daily"]:
+                for day in response["daily"]:
+                    timestamp = day['dt']
+                    date_of_day = datetime.datetime.fromtimestamp(timestamp)
+                    if date_of_day.date() == zeit:
+                        logging.info(day)
+                        max_temp  = int(day['temp']['max'])
+                        min_temp = int(day['temp']['min'])
+                        feels_like_temp = int(day['feels_like']['day'])
+                        weather_description = day['weather'][0]['description']
+                        speech = ("{} lautet dir Vorhersage für {}: {}."
+                                  " Die Höchsttemperaturen liegen bei {}"
+                                  " und die Mindesttemperaturen bei {} Grad."
+                                  " Tagsüber werden es gefühlte {} Grad.".format(
+                                      speech_day(zeit.weekday(),
+                                                 datetime.datetime.now().weekday()),
+                                      ort,
+                                      weather_description,
+                                      max_temp,
+                                      min_temp,
+                                      feels_like_temp))
+                        handler_input.response_builder.speak(speech).set_card(
+                            SimpleCard("wetter frosch",
+                                       speech)).set_should_end_session(False)
+                        return handler_input.response_builder.response
+                    else:
+                        speech = ('Ich kenne leider nur die Wettervorhersagen'
+                                  ' für die nächsten sieben Tage')
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über das Wetter in {ort} geben')
@@ -130,26 +168,55 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
         richtung = slot_values['sun']['resolved']
         time = None
         logging.info(slot_values)
+        # Get longitude and latitude for API call
+        geolocator = Nominatim(user_agent='Wetterfrosch')
+        location = geolocator.geocode(ort)
+        lat = None
+        lon = None
+        if location:
+            lat = location.latitude
+            lon = location.longitude
         if zeit is None:
             zeit = datetime.datetime.now().date()
-        weather = build_url(api, api_key, ort)
+        weather = build_url(onecall_api, api_key, lat, lon)
+        # Cast zeit to datetime object
+        if type(zeit) == str:
+            Y, M, D = zeit.split('-')
+            zeit = datetime.datetime(int(Y),int(M),int(D)).date()
         try:
             response = http_get(weather)
             logging.info(response)
-            if response["sys"]:
-                if 'auf' in richtung:
-                    richtung = 'Sonnenaufgang'
-                    timestamp = response['sys']['sunrise']
-                    date = datetime.datetime.fromtimestamp(timestamp)
-                    time = date.time()
-                    time = time.strftime("%H:%M")
-                else:
-                    richtung = 'Sonnenuntergang'
-                    timestamp = response['sys']['sunset']
-                    date = datetime.datetime.fromtimestamp(timestamp)
-                    time = date.time()
-                    time = time.strftime("%H:%M")
-                speech = ('{} in {} ist um {}'.format(richtung, ort, time))
+            if response["daily"]:
+                for day in response["daily"]:
+                    timestamp = day['dt']
+                    date_of_day = datetime.datetime.fromtimestamp(timestamp)
+                    if date_of_day.date() == zeit:
+                        logging.info(day)
+                        if 'auf' in richtung:
+                            richtung = 'Sonnenaufgang'
+                            timestamp = day['sunrise']
+                            date = datetime.datetime.fromtimestamp(timestamp)
+                            time = date.time()
+                            time = time.strftime("%H:%M")
+                        else:
+                            richtung = 'Sonnenuntergang'
+                            timestamp = day['sunset']
+                            date = datetime.datetime.fromtimestamp(timestamp)
+                            time = date.time()
+                            time = time.strftime("%H:%M")
+                        speech = ('{} ist der {} in {} um {}'.format(
+                            speech_day(zeit.weekday(),
+                                       datetime.datetime.now().weekday()),
+                            richtung,
+                            ort,
+                            time))
+                        handler_input.response_builder.speak(speech).set_card(
+                            SimpleCard("wetter frosch",
+                                       speech)).set_should_end_session(False)
+                        return handler_input.response_builder.response
+                    else:
+                        speech = ('Ich kenne leider nur die Vorhersagen'
+                                  ' für die nächsten sieben Tage')
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über die gewünschten Daten in {ort} geben')
@@ -159,7 +226,6 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
             SimpleCard("wetter frosch", speech)).set_should_end_session(
                 False)  # vorerst True
         return handler_input.response_builder.response
-
 
 
 class RegenIntentHandler(AbstractRequestHandler):
@@ -175,23 +241,52 @@ class RegenIntentHandler(AbstractRequestHandler):
         slot_values = get_slot_values(filled_slots)
         ort = slot_values['ort']['resolved']
         zeit = slot_values['tag']['resolved']
+        # Get longitude and latitude for API call
+        geolocator = Nominatim(user_agent='Wetterfrosch')
+        location = geolocator.geocode(ort)
+        lat = None
+        lon = None
+        if location is not None:
+            lat = location.latitude
+            lon = location.longitude
         logging.info(slot_values)
         if zeit is None:
             zeit = datetime.datetime.now().date()
-        weather = build_url(api, api_key, ort)
+        weather = build_url(onecall_api, api_key, lat, lon)
+        # Cast zeit to datetime object
+        if type(zeit) == str:
+            Y, M, D = zeit.split('-')
+            zeit = datetime.datetime(int(Y),int(M),int(D)).date()
         try:
             response = http_get(weather)
-            if response["weather"]:
-                if response["weather"][0]['main'] == 'Rain':
-                    speech = ('Heute regnet es in {}. '
-                              'Die genaue Vorhersage lautet {}'.format(
-                                  response["name"],
-                                  response["weather"][0]['description']))
-                else:
-                    speech = ('Heute regnet es nicht in {}. '
-                              'Die genaue Vorhersage lautet {}'.format(
-                                  response["name"],
-                                  response["weather"][0]['description']))
+            logging.info(response)
+            if response["daily"]:
+                for day in response["daily"]:
+                    timestamp = day['dt']
+                    date_of_day = datetime.datetime.fromtimestamp(timestamp)
+                    if date_of_day.date() == zeit:
+                        logging.info(day)
+                        if day["weather"][0]['main'] == 'Rain':
+                            speech = ('{} regnet es in {}. '
+                                      'Die genaue Vorhersage lautet {}'.format(
+                                          speech_day(zeit.weekday(),
+                                                     datetime.datetime.now().weekday()),
+                                          ort,
+                                          day['weather'][0]['description']))
+                        else:
+                            speech = ('{} regnet es nicht in {}. '
+                                      'Die genaue Vorhersage lautet {}'.format(
+                                          speech_day(zeit.weekday(),
+                                                     datetime.datetime.now().weekday()),
+                                          ort,
+                                          day['weather'][0]['description']))
+                        handler_input.response_builder.speak(speech).set_card(
+                            SimpleCard("wetter frosch",
+                                       speech)).set_should_end_session(False)
+                        return handler_input.response_builder.response
+                    else:
+                        speech = ('Ich kenne leider nur die Vorhersagen für'
+                                  ' die nächsten sieben Tage')
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über das Wetter in {ort} geben')
@@ -201,7 +296,6 @@ class RegenIntentHandler(AbstractRequestHandler):
             SimpleCard("wetter frosch", speech)).set_should_end_session(
                 False)  # vorerst True
         return handler_input.response_builder.response
-
 
 
 class HelpIntentHandler(AbstractRequestHandler):
@@ -290,7 +384,9 @@ class ResponseLogger(AbstractResponseInterceptor):
 # Data
 
 required_slots = ['ort', 'tag']
-api = 'http://api.openweathermap.org/data/2.5/weather?q={}&lang=de&units=metric&APPID={}'
+onecall_api = ('https://api.openweathermap.org/data/2.5/onecall?'
+               'lat={}&lon={}&%20exclude=minutely'
+               '&lang=de&units=metric&appid={}')
 api_key = 'abc529c6c26889bfddf81f5a845be3fe'
 
 
@@ -344,10 +440,14 @@ def get_slot_values(filled_slots):
     return slot_values
 
 
-def build_url(api, key, location):
+def build_url(api, key, lat, lon):
     """Return options for HTTP Get call."""
-    url = api.format(location, key)
-    return url
+    if (lat is not None and lon is not None):
+        url = api.format(lat, lon, key)
+        return url
+    else:
+        logging.error('Invalid url. Latitute and/or longitude unavailable')
+        return None
 
 
 def http_get(url):
@@ -358,6 +458,16 @@ def http_get(url):
         response.raise_for_status()
 
     return response.json()
+
+def speech_day(n_asked_for, n_current):
+    weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag',
+                'Samstag', 'Sonntag']
+    if n_asked_for == n_current:
+        return 'Heute'
+    elif n_asked_for == (n_current + 1):
+        return 'Morgen'
+    else:
+        return weekdays[n_asked_for]
 
 
 sb.add_request_handler(LaunchRequestHandler())
