@@ -38,16 +38,15 @@
                     ],
                     "samples": [
                         "Wetter {ort}",
-                        "wie ist das Wetter {ort}",
+                        "wie ist das Wetter in {ort}",
                         "Wie ist das Wetter in {ort} {tag}",
                         "Wie ist das Wetter {tag} in {ort}",
-                        "Wetter {ort} {tag}",
+                        "Wetter in {ort} {tag}",
                         "{tag} {ort}",
                         "{ort} {tag}",
-                        "wie wird das Wetter {ort}",
+                        "wie wird das Wetter in {ort}",
                         "Wie wird das Wetter in {ort} {tag}",
                         "Wie wird das Wetter {tag} in {ort}"
-                        
                     ]
                 },
                 {
@@ -72,11 +71,11 @@
                         "gibt es {tag} Regen in {ort}",
                         "regnet es in {ort}",
                         "gibt es Regen in {ort}",
-                        "regnet es {tag} {ort}",
+                        "regnet es {tag} in {ort}",
                         "wird es {tag} in {ort} regnen",
-                        "wird es {tag} regnen {ort}",
-                        "brauche ich einen Schirm {ort}",
-                        "regnet es draußen {ort}"
+                        "wird es {tag} regnen in {ort}",
+                        "brauche ich einen Schirm in {ort}",
+                        "regnet es draußen in {ort}"
                     ]
                 },
                 {
@@ -100,10 +99,10 @@
                         }
                     ],
                     "samples": [
-                        "wann geht {tag} {ort} die Sonne {sun}",
                         "wann geht {tag} in {ort} die Sonne {sun}",
-                        "Wann ist {sun} {ort}",
-                        "Wann wird die Sonne {sun} gehen"
+                        "wann geht {tag} in {ort} die Sonne {sun}",
+                        "Wann ist {sun}  in {ort}",
+                        "Wann wird die Sonne in {ort} {sun} gehen"
                     ]
                 },
                 {
