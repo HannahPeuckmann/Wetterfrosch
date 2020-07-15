@@ -78,7 +78,36 @@
                         "wird es {tag} regnen in {ort}",
                         "brauche ich einen Schirm in {ort}",
                         "regnet es draußen in {ort}",
-                        "regnet es {tag} nachmittag in {ort}"
+                        "regnet es {tag} nachmittags in {ort}"
+                    ]
+                },
+                {
+                    "name": "SchneeIntent",
+                    "slots": [
+                        {
+                            "name": "ort",
+                            "type": "AMAZON.City",
+                            "samples": [
+                                "{ort}",
+                                "für {ort}"
+                            ]
+                        },
+                        {
+                            "name": "tag",
+                            "type": "AMAZON.DATE"
+                        }
+                    ],
+                    "samples": [
+                        "Schnee",
+                        "schneit es {tag} in {ort}",
+                        "gibt es {tag} Schnee in {ort}",
+                        "schneit es in {ort}",
+                        "gibt es Schnee in {ort}",
+                        "schneit es {tag} in {ort}",
+                        "wird es {tag} in {ort} schneien",
+                        "wird es {tag} schneien in {ort}",
+                        "schneit es draußen in {ort}",
+                        "schneit es {tag} nachmittags in {ort}"
                     ]
                 },
                 {
@@ -103,9 +132,13 @@
                     ],
                     "samples": [
                         "wann geht {tag} in {ort} die Sonne {sun}",
-                        "wann geht {tag} in {ort} die Sonne {sun}",
+                        "Wann geht in {ort} {tag} die Sonne {sun}",
                         "Wann ist {sun}  in {ort}",
-                        "Wann wird die Sonne in {ort} {sun} gehen"
+                        "Wann wird die Sonne in {ort} {sun} gehen",
+                        "{sun} {ort}",
+                        "{sun} {ort} {tag}",
+                        "Wann geht in {ort} die Sonne {sun}",
+                        "Wann ist {sun} {tag} in {ort}"
                     ]
                 },
                 {

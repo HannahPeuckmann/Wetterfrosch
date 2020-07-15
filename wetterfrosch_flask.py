@@ -266,14 +266,14 @@ class RegenIntentHandler(AbstractRequestHandler):
                     if date_of_day.date() == zeit:
                         logging.info(day)
                         if day["weather"][0]['main'] == 'Rain':
-                            speech = ('Ja {} regnet es in {}. '
+                            speech = ('Ja. {} regnet es in {}. '
                                       'Die genaue Vorhersage lautet {}'.format(
                                           speech_day(zeit.weekday(),
                                                      datetime.datetime.now().weekday()),
                                           ort,
                                           day['weather'][0]['description']))
                         else:
-                            speech = ('Nein {} regnet es nicht in {}. '
+                            speech = ('Nein. {} regnet es nicht in {}. '
                                       'Die genaue Vorhersage lautet {}'.format(
                                           speech_day(zeit.weekday(),
                                                      datetime.datetime.now().weekday()),
@@ -296,6 +296,75 @@ class RegenIntentHandler(AbstractRequestHandler):
                 False)  # vorerst True
         return handler_input.response_builder.response
 
+
+class SchneeIntentHandler(AbstractRequestHandler):
+    """Handler for Regen Intent."""
+
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        return is_intent_name("SchneeIntent")(handler_input)
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        filled_slots = handler_input.request_envelope.request.intent.slots
+        slot_values = get_slot_values(filled_slots)
+        ort = slot_values['ort']['resolved']
+        zeit = slot_values['tag']['resolved']
+        # Get longitude and latitude for API call
+        geolocator = Nominatim(user_agent='Wetterfrosch')
+        location = geolocator.geocode(ort)
+        lat = None
+        lon = None
+        if location is not None:
+            lat = location.latitude
+            lon = location.longitude
+        logging.info(slot_values)
+        if zeit is None:
+            zeit = datetime.datetime.now().date()
+        weather = build_url(onecall_api, api_key, lat, lon)
+        # Cast zeit to datetime object
+        if type(zeit) == str:
+            Y, M, D = zeit.split('-')
+            zeit = datetime.datetime(int(Y),int(M),int(D)).date()
+        try:
+            response = http_get(weather)
+            logging.info(response)
+            if response["daily"]:
+                for day in response["daily"]:
+                    timestamp = day['dt']
+                    date_of_day = datetime.datetime.fromtimestamp(timestamp)
+                    if date_of_day.date() == zeit:
+                        logging.info(day)
+                        if day["weather"][0]['main'] == 'Snow':
+                            speech = ('Ja. {} schneit es in {}. '
+                                      'Die genaue Vorhersage lautet {}'.format(
+                                          speech_day(zeit.weekday(),
+                                                     datetime.datetime.now().weekday()),
+                                          ort,
+                                          day['weather'][0]['description']))
+                        else:
+                            speech = ('Nein. {} schneit es nicht in {}. '
+                                      'Die genaue Vorhersage lautet {}'.format(
+                                          speech_day(zeit.weekday(),
+                                                     datetime.datetime.now().weekday()),
+                                          ort,
+                                          day['weather'][0]['description']))
+                        handler_input.response_builder.speak(speech).set_card(
+                            SimpleCard("wetter frosch",
+                                       speech)).set_should_end_session(False)
+                        return handler_input.response_builder.response
+                    else:
+                        speech = ('Ich kenne leider nur die Vorhersagen für'
+                                  ' die nächsten sieben Tage')
+        except Exception as e:
+            speech = ('Tut mir leid, ich kann dir leider keine '
+                      f'Informationen über das Wetter in {ort} geben')
+            logging.info("Intent: {}: message: {}".format(
+                handler_input.request_envelope.request.intent.name, str(e)))
+        handler_input.response_builder.speak(speech).set_card(
+            SimpleCard("wetter frosch", speech)).set_should_end_session(
+                False)  # vorerst True
+        return handler_input.response_builder.response
 
 class HelpIntentHandler(AbstractRequestHandler):
     """Handler for Help Intent."""
@@ -473,6 +542,7 @@ sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(WetterIntentHandler())
 sb.add_request_handler(InProgressIntentHandler())
 sb.add_request_handler(RegenIntentHandler())
+sb.add_request_handler(SchneeIntentHandler())
 sb.add_request_handler(SonnenuntergangIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
