@@ -158,7 +158,6 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> bool
         return is_intent_name("SonnenuntergangIntent")(handler_input)
 
-
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         filled_slots = handler_input.request_envelope.request.intent.slots
@@ -267,14 +266,14 @@ class RegenIntentHandler(AbstractRequestHandler):
                     if date_of_day.date() == zeit:
                         logging.info(day)
                         if day["weather"][0]['main'] == 'Rain':
-                            speech = ('{} regnet es in {}. '
+                            speech = ('Ja {} regnet es in {}. '
                                       'Die genaue Vorhersage lautet {}'.format(
                                           speech_day(zeit.weekday(),
                                                      datetime.datetime.now().weekday()),
                                           ort,
                                           day['weather'][0]['description']))
                         else:
-                            speech = ('{} regnet es nicht in {}. '
+                            speech = ('Nein {} regnet es nicht in {}. '
                                       'Die genaue Vorhersage lautet {}'.format(
                                           speech_day(zeit.weekday(),
                                                      datetime.datetime.now().weekday()),
