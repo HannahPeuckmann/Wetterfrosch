@@ -37,7 +37,7 @@
                         }
                     ],
                     "samples": [
-                        "Wetter {ort}",
+                        "Wetter {tag} {ort}",
                         "wie ist das Wetter in {ort}",
                         "Wie ist das Wetter in {ort} {tag}",
                         "Wie ist das Wetter {tag} in {ort}",
@@ -46,7 +46,9 @@
                         "{ort} {tag}",
                         "wie wird das Wetter in {ort}",
                         "Wie wird das Wetter in {ort} {tag}",
-                        "Wie wird das Wetter {tag} in {ort}"
+                        "Wie wird das Wetter {tag} in {ort}",
+                        "Wie wird das Wetter {tag} Mittag in {ort}",
+                        "Wie wird das Wetter {tag} Nachmittag in {ort}"
                     ]
                 },
                 {
@@ -75,7 +77,8 @@
                         "wird es {tag} in {ort} regnen",
                         "wird es {tag} regnen in {ort}",
                         "brauche ich einen Schirm in {ort}",
-                        "regnet es draußen in {ort}"
+                        "regnet es draußen in {ort}",
+                        "regnet es {tag} nachmittag in {ort}"
                     ]
                 },
                 {
