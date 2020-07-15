@@ -88,8 +88,8 @@
                             "name": "ort",
                             "type": "AMAZON.City",
                             "samples": [
-                                "{ort}",
-                                "für {ort}"
+                                "für {ort}",
+                                "{ort}"
                             ]
                         },
                         {
@@ -255,6 +255,29 @@
                             "prompts": {}
                         }
                     ]
+                },
+                {
+                    "name": "SchneeIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "ort",
+                            "type": "AMAZON.City",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.464443712320.751491331719"
+                            }
+                        },
+                        {
+                            "name": "tag",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
                 }
             ],
             "delegationStrategy": "ALWAYS"
@@ -284,6 +307,15 @@
                     {
                         "type": "PlainText",
                         "value": "Für welche Stadt soll ich suchen?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.464443712320.751491331719",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Für welchen Ort möchtest du herausfinden ob es schneit?"
                     }
                 ]
             }
