@@ -6,19 +6,24 @@ from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
 
+
 from ask_sdk_model.services import ServiceException
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
 from ask_sdk_core.utils import is_request_type, is_intent_name
 from ask_sdk_core.handler_input import HandlerInput
 
+
 from ask_sdk_model.ui import AskForPermissionsConsentCard # permission for location 
+
 
 from ask_sdk_model.ui import SimpleCard
 from ask_sdk_model import Response
 
+
 from ask_sdk_core.dispatch_components import (
     AbstractRequestHandler, AbstractExceptionHandler,
     AbstractResponseInterceptor, AbstractRequestInterceptor)
+
 
 from typing import Union, Dict, Any, List
 from ask_sdk_model.dialog import (
@@ -27,12 +32,15 @@ from ask_sdk_model import (
     Response, IntentRequest, DialogState, SlotConfirmationStatus, Slot)
 from ask_sdk_model.slu.entityresolution import StatusCode
 
+
 from geopy.geocoders import Nominatim
+
 
 logging.basicConfig(filename='wetterfrosch_log.log',
                     level=logging.INFO,
                     format='%(asctime)s %(levelname)s: %(message)s'
                     )
+
 
 app = Flask(__name__)
 sb = SkillBuilder()
@@ -40,33 +48,38 @@ sb = SkillBuilder()
 # ---
 
 
+
+
 class LaunchRequestHandler(AbstractRequestHandler):
     """Handler for Skill Launch."""
+
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_request_type("LaunchRequest")(handler_input)
 
+
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         speech_text = "Willkommen bei Wetterfrosch, frag mich nach dem Wetter!"
 
-        handler_input.response_builder.speak(speech_text).set_card(
-            SimpleCard("wetter frosch", speech_text)).set_should_end_session(
+        reprompt = 'Du kannst mich zum Beispiel fragen ob es heute regnen wird.'
+        handler_input.response_builder.speak(speech_text).ask(reprompt).set_should_end_session(
             False)
         return handler_input.response_builder.response
+
 
 class InProgressIntentHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return (is_intent_name("RegenIntent" or "WetterIntent" or "SonnenuntergangIntent")(handler_input)
                 and handler_input.request_envelope.request.dialog_state != DialogState.COMPLETED)
 
+
     def handle(self, handler_input):
         current_intent = handler_input.request_envelope.request.intent
         for slot_name, current_slot in six.iteritems(
             current_intent.slots):
             if slot_name == "ort":
-                print(True)
                 if (current_slot.confirmation_status != SlotConfirmationStatus.CONFIRMED
                         and current_slot.resolutions
                         and current_slot.resolutions.resolutions_per_authority[0]):
@@ -75,16 +88,20 @@ class InProgressIntentHandler(AbstractRequestHandler):
                                 ElicitSlotDirective(slot_to_elicit=current_slot.name)
                                 ).response
                 else:
-                    print(current_slot.confirmation_status)
+                    logging.info(current_slot.confirmation_status)
+
+
 
 
 class WetterIntentHandler(AbstractRequestHandler):
     """Handler for Wetter Intent."""
 
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return (is_intent_name("WetterIntent")(handler_input)
             and handler_input.request_envelope.request.dialog_state == DialogState.COMPLETED)
+
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -93,7 +110,6 @@ class WetterIntentHandler(AbstractRequestHandler):
         ort = slot_values['ort']['resolved']
         zeit = slot_values['tag']['resolved']
         logging.info(slot_values)
-        
         # Get longitude and latitude for API call
         geolocator = Nominatim(user_agent='Wetterfrosch')
         location = geolocator.geocode(ort)
@@ -135,29 +151,28 @@ class WetterIntentHandler(AbstractRequestHandler):
                                       max_temp,
                                       min_temp,
                                       feels_like_temp))
-                        handler_input.response_builder.speak(speech).set_card(
-                            SimpleCard("wetter frosch",
-                                       speech)).set_should_end_session(False)
+                        reprompt = ('Du kannst mich weiter nach dem Wetter fragen, du kannst zum Beuspiel fragen, ob es regnen wird.')
+                        handler_input.response_builder.speak(speech).ask(reprompt).set_should_end_session(False)
                         return handler_input.response_builder.response
                     else:
                         speech = ('Ich kenne leider nur die Wettervorhersagen'
                                   ' für die nächsten sieben Tage')
+                        handler_input.response_builder.speak(speech).set_should_end_session(False)
+                        return handler_input.response_builder.response
         except Exception as e:
-            speech = ('Tut mir leid, ich kann dir leider keine '
+            speech = ('Tut mir leid, ich kann dir leider keine ' \
                       f'Informationen über das Wetter in {ort} geben')
             logging.info("Intent: {}: message: {}".format(
                 handler_input.request_envelope.request.intent.name, str(e)))
-        handler_input.response_builder.speak(speech).set_card(
-            SimpleCard("wetter frosch", speech)).set_should_end_session(
-                False)  # vorerst True
+        handler_input.response_builder.speak(speech).set_should_end_session(False)
         return handler_input.response_builder.response
+
 
 class SonnenuntergangIntentHandler(AbstractRequestHandler):
     """Handler for Temperatur Intent"""
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("SonnenuntergangIntent")(handler_input)
-
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -210,30 +225,35 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
                             richtung,
                             ort,
                             time))
-                        handler_input.response_builder.speak(speech).set_card(
-                            SimpleCard("wetter frosch",
-                                       speech)).set_should_end_session(False)
+                        reprompt = ('frag mich weiter nach dem wetter'
+                                    'Du kannst zum beispiel fragen, ob es morgen regnen wird')
+                        handler_input.response_builder.speak(speech).ask(reprompt).set_should_end_session(False)
                         return handler_input.response_builder.response
                     else:
                         speech = ('Ich kenne leider nur die Vorhersagen'
                                   ' für die nächsten sieben Tage')
+                        handler_input.response_builder.speak(speech).set_should_end_session(False)
+                        return handler_input.response_builder.response
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über die gewünschten Daten in {ort} geben')
             logging.info("Intent: {}: message: {}".format(
                 handler_input.request_envelope.request.intent.name, str(e)))
-        handler_input.response_builder.speak(speech).set_card(
-            SimpleCard("wetter frosch", speech)).set_should_end_session(
-                False)  # vorerst True
+        handler_input.response_builder.speak(speech).set_should_end_session(
+                False)
         return handler_input.response_builder.response
+
+
 
 
 class RegenIntentHandler(AbstractRequestHandler):
     """Handler for Regen Intent."""
 
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("RegenIntent")(handler_input)
+
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -280,56 +300,67 @@ class RegenIntentHandler(AbstractRequestHandler):
                                                      datetime.datetime.now().weekday()),
                                           ort,
                                           day['weather'][0]['description']))
-                        handler_input.response_builder.speak(speech).set_card(
-                            SimpleCard("wetter frosch",
-                                       speech)).set_should_end_session(False)
+                        reprompt = ('Ich kann dir noch mehr über das Wetter sagen,'
+                                    'Du kannst mich zum Beispiel nach Sonnen auf und Untergang fragen')
+                        handler_input.response_builder.speak(speech).ask(reprompt).set_should_end_session(False)
                         return handler_input.response_builder.response
                     else:
                         speech = ('Ich kenne leider nur die Vorhersagen für'
                                   ' die nächsten sieben Tage')
+                        handler_input.response_builder.speak(speech).set_should_end_session(False)
+                        return handler_input.response_builder.response
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über das Wetter in {ort} geben')
             logging.info("Intent: {}: message: {}".format(
                 handler_input.request_envelope.request.intent.name, str(e)))
-        handler_input.response_builder.speak(speech).set_card(
-            SimpleCard("wetter frosch", speech)).set_should_end_session(
-                False)  # vorerst True
+        handler_input.response_builder.speak(speech).set_should_end_session(
+            False)
         return handler_input.response_builder.response
+
+
 
 
 class HelpIntentHandler(AbstractRequestHandler):
     """Handler for Help Intent."""
 
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("AMAZON.HelpIntent")(handler_input)
+
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         speech_text = "Du kannst nach dem Wetter fragen"
 
+
         handler_input.response_builder.speak(speech_text).ask(
-            speech_text).set_card(SimpleCard(
-                "wetter frosch", speech_text))
+            speech_text)
         return handler_input.response_builder.response
+
+
 
 
 class CancelOrStopIntentHandler(AbstractRequestHandler):
     """Single handler for Cancel and Stop Intent."""
+
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return (is_intent_name("AMAZON.CancelIntent")(handler_input) or
                 is_intent_name("AMAZON.StopIntent")(handler_input))
 
+
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         speech_text = "Tschüss!"
 
-        handler_input.response_builder.speak(speech_text).set_card(
-            SimpleCard("wetter frosch", speech_text))
+
+        handler_input.response_builder.speak(speech_text)
         return handler_input.response_builder.response
+
+
 
 
 class FallbackIntentHandler(AbstractRequestHandler):
@@ -338,9 +369,11 @@ class FallbackIntentHandler(AbstractRequestHandler):
     so it is safe to deploy on any locale.
     """
 
+
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("AMAZON.FallbackIntent")(handler_input)
+
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -351,21 +384,46 @@ class FallbackIntentHandler(AbstractRequestHandler):
         return handler_input.response_builder.response
 
 
+
+
 class SessionEndedRequestHandler(AbstractRequestHandler):
     """Handler for Session End."""
+
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_request_type("SessionEndedRequest")(handler_input)
 
+
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         return handler_input.response_builder.response
+
+# Exception Handler classes
+class CatchAllExceptionHandler(AbstractExceptionHandler):
+    """Catch All Exception handler.
+
+    This handler catches all kinds of exceptions and prints
+    the stack trace on AWS Cloudwatch with the request envelope."""
+    def can_handle(self, handler_input, exception):
+        # type: (HandlerInput, Exception) -> bool
+        return True
+
+    def handle(self, handler_input, exception):
+        # type: (HandlerInput, Exception) -> Response
+        logging.error(exception, exc_info=True)
+
+        speech = "Sorry, I can't understand the command. Please say again."
+        handler_input.response_builder.speak(speech).ask(speech)
+        return handler_input.response_builder.response
+
+
 
 
 # Request and Response Loggers
 class RequestLogger(AbstractRequestInterceptor):
     """Log the request envelope."""
+
 
     def process(self, handler_input):
         # type: (HandlerInput) -> None
@@ -373,21 +431,29 @@ class RequestLogger(AbstractRequestInterceptor):
             handler_input.request_envelope))
 
 
+
+
 class ResponseLogger(AbstractResponseInterceptor):
     """Log the response envelope."""
+
 
     def process(self, handler_input, response):
         # type: (HandlerInput, Response) -> None
         logging.info("Response: {}".format(response))
 
 
+
+
 # Data
+
 
 required_slots = ['ort', 'tag']
 onecall_api = ('https://api.openweathermap.org/data/2.5/onecall?'
                'lat={}&lon={}&%20exclude=minutely'
                '&lang=de&units=metric&appid={}')
 api_key = 'abc529c6c26889bfddf81f5a845be3fe'
+
+
 
 
 # Utility functions
@@ -404,16 +470,20 @@ def get_resolved_value(request, slot_name):
         return None
 
 
+
+
 def get_slot_values(filled_slots):
     """Return slot values with additional info."""
     # type: (Dict[str, Slot]) -> Dict[str, Any]
     slot_values = {}
     logging.info("Filled slots: {}".format(filled_slots))
 
+
     for key, slot_item in six.iteritems(filled_slots):
         name = slot_item.name
         try:
             status_code = slot_item.resolutions.resolutions_per_authority[0].status.code
+
 
             if status_code == StatusCode.ER_SUCCESS_MATCH:
                 slot_values[name] = {
@@ -440,6 +510,8 @@ def get_slot_values(filled_slots):
     return slot_values
 
 
+
+
 def build_url(api, key, lat, lon):
     """Return options for HTTP Get call."""
     if (lat is not None and lon is not None):
@@ -450,14 +522,19 @@ def build_url(api, key, lat, lon):
         return None
 
 
+
+
 def http_get(url):
     response = requests.get(url)
     logging.info(url)
 
+
     if response.status_code < 200 or response.status_code >= 300:
         response.raise_for_status()
 
+
     return response.json()
+
 
 def speech_day(n_asked_for, n_current):
     weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag',
@@ -470,6 +547,8 @@ def speech_day(n_asked_for, n_current):
         return weekdays[n_asked_for]
 
 
+
+
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(WetterIntentHandler())
 sb.add_request_handler(InProgressIntentHandler())
@@ -479,8 +558,11 @@ sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(FallbackIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())
+sb.add_exception_handler(CatchAllExceptionHandler())
 sb.add_global_request_interceptor(RequestLogger())
 sb.add_global_response_interceptor(ResponseLogger())
+
+
 
 
 # ---
@@ -488,9 +570,13 @@ skill_adapter = SkillAdapter(
     skill=sb.create(), skill_id='TEST', app=app)
 
 
+
+
 @app.route("/", methods=['POST'])
 def invoke_skill():
     return skill_adapter.dispatch_request()
+
+
 
 
 if __name__ == '__main__':
