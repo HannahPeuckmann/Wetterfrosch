@@ -371,7 +371,9 @@ class SchneeIntentHandler(AbstractRequestHandler):
                                                      datetime.datetime.now().weekday()),
                                           ort,
                                           day['weather'][0]['description']))
-                        handler_input.response_builder.speak(speech).set_should_end_session(False)
+                        reprompt = ('Frag mich mehr über das Wetter,'
+                                    'Du kannst zum Beispiel fragen ob es regnen wird.')
+                        handler_input.response_builder.speak(speech).ask(reprompt).set_should_end_session(False)
                         return handler_input.response_builder.response
                     else:
                         speech = ('Ich kenne leider nur die Vorhersagen für'
@@ -385,7 +387,7 @@ class SchneeIntentHandler(AbstractRequestHandler):
             logging.info("Intent: {}: message: {}".format(
                 handler_input.request_envelope.request.intent.name, str(e)))
         handler_input.response_builder.speak(speech).set_should_end_session(
-                False)  
+                False)
         return handler_input.response_builder.response
 
 class HelpIntentHandler(AbstractRequestHandler):
