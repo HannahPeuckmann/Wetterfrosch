@@ -2,6 +2,7 @@ import logging
 import requests # for http request
 import six
 import datetime
+import pytz
 from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
@@ -186,21 +187,27 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
             response = http_get(weather)
             logging.info(response)
             if response["daily"]:
+                logging.info('DAS GEHT')
                 for day in response["daily"]:
                     timestamp = day['dt']
                     date_of_day = datetime.datetime.fromtimestamp(timestamp)
                     if date_of_day.date() == zeit:
                         logging.info(day)
+                        timezone = response['timezone']
                         if 'auf' in richtung:
                             richtung = 'Sonnenaufgang'
                             timestamp = day['sunrise']
                             date = datetime.datetime.fromtimestamp(timestamp)
+                            # Fit timezone 
+                            date = date.astimezone(pytz.timezone(timezone))
                             time = date.time()
                             time = time.strftime("%H:%M")
                         else:
                             richtung = 'Sonnenuntergang'
                             timestamp = day['sunset']
                             date = datetime.datetime.fromtimestamp(timestamp)
+                            # Fit timezone 
+                            date = date.astimezone(pytz.timezone(timezone))
                             time = date.time()
                             time = time.strftime("%H:%M")
                         speech = ('{} ist der {} in {} um {}'.format(
