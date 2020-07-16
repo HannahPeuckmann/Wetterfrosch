@@ -2,6 +2,7 @@ import logging
 import requests # for http request
 import six
 import datetime
+import pytz
 from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
@@ -226,8 +227,6 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
                     else:
                         speech = ('Ich kenne leider nur die Vorhersagen'
                                   ' für die nächsten sieben Tage')
-                        handler_input.response_builder.speak(speech).set_should_end_session(False)
-                        return handler_input.response_builder.response
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über die gewünschten Daten in {ort} geben')
