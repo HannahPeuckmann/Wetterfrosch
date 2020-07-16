@@ -2,7 +2,6 @@ import logging
 import requests # for http request
 import six
 import datetime
-import pytz
 from flask import Flask
 from ask_sdk_core.skill_builder import SkillBuilder
 from flask_ask_sdk.skill_adapter import SkillAdapter
@@ -158,8 +157,6 @@ class WetterIntentHandler(AbstractRequestHandler):
                     else:
                         speech = ('Ich kenne leider nur die Wettervorhersagen'
                                   ' für die nächsten sieben Tage')
-                        handler_input.response_builder.speak(speech).set_should_end_session(False)
-                        return handler_input.response_builder.response
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine ' \
                       f'Informationen über das Wetter in {ort} geben')
@@ -203,27 +200,21 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
             response = http_get(weather)
             logging.info(response)
             if response["daily"]:
-                logging.info('DAS GEHT')
                 for day in response["daily"]:
                     timestamp = day['dt']
                     date_of_day = datetime.datetime.fromtimestamp(timestamp)
                     if date_of_day.date() == zeit:
                         logging.info(day)
-                        timezone = response['timezone']
                         if 'auf' in richtung:
                             richtung = 'Sonnenaufgang'
                             timestamp = day['sunrise']
                             date = datetime.datetime.fromtimestamp(timestamp)
-                            # Fit timezone 
-                            date = date.astimezone(pytz.timezone(timezone))
                             time = date.time()
                             time = time.strftime("%H:%M")
                         else:
                             richtung = 'Sonnenuntergang'
                             timestamp = day['sunset']
                             date = datetime.datetime.fromtimestamp(timestamp)
-                            # Fit timezone 
-                            date = date.astimezone(pytz.timezone(timezone))
                             time = date.time()
                             time = time.strftime("%H:%M")
                         speech = ('{} ist der {} in {} um {}'.format(
@@ -239,8 +230,7 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
                     else:
                         speech = ('Ich kenne leider nur die Vorhersagen'
                                   ' für die nächsten sieben Tage')
-                        handler_input.response_builder.speak(speech).set_should_end_session(False)
-                        return handler_input.response_builder.response
+
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über die gewünschten Daten in {ort} geben')
@@ -292,6 +282,7 @@ class RegenIntentHandler(AbstractRequestHandler):
                     timestamp = day['dt']
                     date_of_day = datetime.datetime.fromtimestamp(timestamp)
                     if date_of_day.date() == zeit:
+                        print('date_of_day == Zeit')
                         logging.info(day)
                         if day["weather"][0]['main'] == 'Rain':
                             speech = ('Ja. {} regnet es in {}. '
@@ -312,10 +303,9 @@ class RegenIntentHandler(AbstractRequestHandler):
                         handler_input.response_builder.speak(speech).ask(reprompt).set_should_end_session(False)
                         return handler_input.response_builder.response
                     else:
+                        print('else')
                         speech = ('Ich kenne leider nur die Vorhersagen für'
                                   ' die nächsten sieben Tage')
-                        handler_input.response_builder.speak(speech).set_should_end_session(False)
-                        return handler_input.response_builder.response
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über das Wetter in {ort} geben')
@@ -385,8 +375,7 @@ class SchneeIntentHandler(AbstractRequestHandler):
                     else:
                         speech = ('Ich kenne leider nur die Vorhersagen für'
                                   ' die nächsten sieben Tage')
-                        handler_input.response_builder.speak(speech).set_should_end_session(False)
-                        return handler_input.response_builder.response
+                        
       
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
