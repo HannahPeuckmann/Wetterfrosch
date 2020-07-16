@@ -196,16 +196,21 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
                     date_of_day = datetime.datetime.fromtimestamp(timestamp)
                     if date_of_day.date() == zeit:
                         logging.info(day)
+                        timezone = response['timezone']
                         if 'auf' in richtung:
                             richtung = 'Sonnenaufgang'
                             timestamp = day['sunrise']
                             date = datetime.datetime.fromtimestamp(timestamp)
+                            # Fit timezone 
+                            date = date.astimezone(pytz.timezone(timezone))
                             time = date.time()
                             time = time.strftime("%H:%M")
                         else:
                             richtung = 'Sonnenuntergang'
                             timestamp = day['sunset']
                             date = datetime.datetime.fromtimestamp(timestamp)
+                            # Fit timezone 
+                            date = date.astimezone(pytz.timezone(timezone))
                             time = date.time()
                             time = time.strftime("%H:%M")
                         speech = ('{} ist der {} in {} um {}'.format(
@@ -221,7 +226,8 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
                     else:
                         speech = ('Ich kenne leider nur die Vorhersagen'
                                   ' für die nächsten sieben Tage')
-
+                        handler_input.response_builder.speak(speech).set_should_end_session(False)
+                        return handler_input.response_builder.response
         except Exception as e:
             speech = ('Tut mir leid, ich kann dir leider keine '
                       f'Informationen über die gewünschten Daten in {ort} geben')
