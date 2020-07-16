@@ -49,16 +49,12 @@ sb = SkillBuilder()
 # ---
 
 
-
-
 class LaunchRequestHandler(AbstractRequestHandler):
     """Handler for Skill Launch."""
-
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_request_type("LaunchRequest")(handler_input)
-
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -74,7 +70,6 @@ class InProgressIntentHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return (is_intent_name("RegenIntent" or "WetterIntent" or "SonnenuntergangIntent")(handler_input)
                 and handler_input.request_envelope.request.dialog_state != DialogState.COMPLETED)
-
 
     def handle(self, handler_input):
         current_intent = handler_input.request_envelope.request.intent
@@ -92,17 +87,13 @@ class InProgressIntentHandler(AbstractRequestHandler):
                     logging.info(current_slot.confirmation_status)
 
 
-
-
 class WetterIntentHandler(AbstractRequestHandler):
     """Handler for Wetter Intent."""
-
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return (is_intent_name("WetterIntent")(handler_input)
             and handler_input.request_envelope.request.dialog_state == DialogState.COMPLETED)
-
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -203,7 +194,6 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
             response = http_get(weather)
             logging.info(response)
             if response["daily"]:
-                logging.info('DAS GEHT')
                 for day in response["daily"]:
                     timestamp = day['dt']
                     date_of_day = datetime.datetime.fromtimestamp(timestamp)
@@ -251,16 +241,12 @@ class SonnenuntergangIntentHandler(AbstractRequestHandler):
         return handler_input.response_builder.response
 
 
-
-
 class RegenIntentHandler(AbstractRequestHandler):
     """Handler for Regen Intent."""
-
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("RegenIntent")(handler_input)
-
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -397,42 +383,34 @@ class SchneeIntentHandler(AbstractRequestHandler):
                 False)
         return handler_input.response_builder.response
 
+
 class HelpIntentHandler(AbstractRequestHandler):
     """Handler for Help Intent."""
-
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("AMAZON.HelpIntent")(handler_input)
 
-
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         speech_text = "Du kannst nach dem Wetter fragen"
-
 
         handler_input.response_builder.speak(speech_text).ask(
             speech_text)
         return handler_input.response_builder.response
 
 
-
-
 class CancelOrStopIntentHandler(AbstractRequestHandler):
     """Single handler for Cancel and Stop Intent."""
-
 
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return (is_intent_name("AMAZON.CancelIntent")(handler_input) or
                 is_intent_name("AMAZON.StopIntent")(handler_input))
 
-
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         speech_text = "Tschüss!"
-
-
         handler_input.response_builder.speak(speech_text)
         return handler_input.response_builder.response
 
@@ -444,12 +422,9 @@ class FallbackIntentHandler(AbstractRequestHandler):
     This handler will not be triggered except in that locale,
     so it is safe to deploy on any locale.
     """
-
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_intent_name("AMAZON.FallbackIntent")(handler_input)
-
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
@@ -465,15 +440,14 @@ class FallbackIntentHandler(AbstractRequestHandler):
 class SessionEndedRequestHandler(AbstractRequestHandler):
     """Handler for Session End."""
 
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_request_type("SessionEndedRequest")(handler_input)
 
-
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         return handler_input.response_builder.response
+
 
 # Exception Handler classes
 class CatchAllExceptionHandler(AbstractExceptionHandler):
@@ -494,12 +468,9 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
         return handler_input.response_builder.response
 
 
-
-
 # Request and Response Loggers
 class RequestLogger(AbstractRequestInterceptor):
     """Log the request envelope."""
-
 
     def process(self, handler_input):
         # type: (HandlerInput) -> None
@@ -507,17 +478,12 @@ class RequestLogger(AbstractRequestInterceptor):
             handler_input.request_envelope))
 
 
-
-
 class ResponseLogger(AbstractResponseInterceptor):
     """Log the response envelope."""
-
 
     def process(self, handler_input, response):
         # type: (HandlerInput, Response) -> None
         logging.info("Response: {}".format(response))
-
-
 
 
 # Data
@@ -528,8 +494,6 @@ onecall_api = ('https://api.openweathermap.org/data/2.5/onecall?'
                'lat={}&lon={}&%20exclude=minutely'
                '&lang=de&units=metric&appid={}')
 api_key = 'abc529c6c26889bfddf81f5a845be3fe'
-
-
 
 
 # Utility functions
@@ -546,21 +510,15 @@ def get_resolved_value(request, slot_name):
         return None
 
 
-
-
 def get_slot_values(filled_slots):
     """Return slot values with additional info."""
     # type: (Dict[str, Slot]) -> Dict[str, Any]
     slot_values = {}
     logging.info("Filled slots: {}".format(filled_slots))
-
-
     for key, slot_item in six.iteritems(filled_slots):
         name = slot_item.name
         try:
             status_code = slot_item.resolutions.resolutions_per_authority[0].status.code
-
-
             if status_code == StatusCode.ER_SUCCESS_MATCH:
                 slot_values[name] = {
                     "synonym": slot_item.value,
@@ -586,8 +544,6 @@ def get_slot_values(filled_slots):
     return slot_values
 
 
-
-
 def build_url(api, key, lat, lon):
     """Return options for HTTP Get call."""
     if (lat is not None and lon is not None):
@@ -597,20 +553,12 @@ def build_url(api, key, lat, lon):
         logging.error('Invalid url. Latitute and/or longitude unavailable')
         return None
 
-
-
-
 def http_get(url):
     response = requests.get(url)
     logging.info(url)
-
-
     if response.status_code < 200 or response.status_code >= 300:
         response.raise_for_status()
-
-
     return response.json()
-
 
 def speech_day(n_asked_for, n_current):
     weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag',
@@ -621,8 +569,6 @@ def speech_day(n_asked_for, n_current):
         return 'Morgen'
     else:
         return weekdays[n_asked_for]
-
-
 
 
 sb.add_request_handler(LaunchRequestHandler())
@@ -640,20 +586,13 @@ sb.add_global_request_interceptor(RequestLogger())
 sb.add_global_response_interceptor(ResponseLogger())
 
 
-
-
 # ---
 skill_adapter = SkillAdapter(
     skill=sb.create(), skill_id='TEST', app=app)
 
-
-
-
 @app.route("/", methods=['POST'])
 def invoke_skill():
     return skill_adapter.dispatch_request()
-
-
 
 
 if __name__ == '__main__':
