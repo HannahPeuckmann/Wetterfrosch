@@ -1,0 +1,31 @@
+Was sollte erreicht werden? 
+
+Es sollte ein Alexa-Skill implementiert werden, der Wetterinformationen liefert. 
+Eine Anforderung, die der Skill erfüllen sollte war Fragen nach allgemeinen Wetterdaten mit einer Wetterbeschreibung (sonnig, leicht bewölkt, regen, etc.), sowie Mindest- und Höchsttemperatur zu beantworten. Außerdem sollten spezifische Informationen abrufbar sein, wie Regenwahrscheinlichkeit, Windstärke, Sonnenauf-/untergangszeiten, Schnee und Temperatur. Welche dieser Informationen lieferbar waren, stand in Abhängigkeit zu dem Angebot der Openweather API, die wir genutzt haben. Es sollte die Möglichkeit geboten werden nach einem bestimmt Zeitpunkt und Ort zu fragen, sowie bei Nichtfüllung dieser Slots den aktuellen Tag als Zeitpunkt-Defaultwert und den Standort als Ort-Defaultwert zu verwenden. Wie spezifisch Orts- und Zeitangabe sein konnten, war anfangs noch nicht klar, da beides API-abhängig ist. Auf jeden Fall sollte nach Städten und für den aktuellen Tag, sowie eine (unklare) Anzahl von Folgetagen nach dem Wetter gefragt werden können. 
+
+Wie spezifisch die Ortsangabe sein konnte war anfangs noch nicht klar. Mindestens sollte nach Städten gefragt werden können. Zum ersten Planungszeitpunkt wussten wir auch noch nicht, wie genau der Zeitpunkt spezifizierbar werden könnte, da das auch API-abhängig war. Der aktuelle Stand ist, dass das Wetter für den aktuellen Tag, sowie der nächsten sieben Tage erfragt werden kann. Die API würde noch die Möglichkeit einer stündlichen Abfrage der folgenden 48 Stunden bieten, dies haben wir noch nicht implementiert.  
+
+
+    
+Was hat geklappt, was nicht? 
+
+Bei der Implementierung des Skills sollte der Standort der Benutzer*innen bzw. die device Adresse als default Wert für den Slot ‘Ort’ verwendet werden, falls dieser nicht vom Benutzer*Innen gefüllt wird, leider sind wir an der Implementierung gescheitert. Dies hängt damit zusammen, dass ausschließlich in der developer console getestet wurde und nicht mit einer Alexa getestet werden konnte. In der console kann keine Adresse abgefragt werden und auch keine Erlaubnis eingeholt werden auf die Adresse zugreifen zu dürfen.
+Ebenfalls nicht implementieren konnten wird das Füllen von slots, aus der Lambda Funktion heraus, wenn diese bereits gefüllt waren. Manche Benutzer*Innen Eingaben werden dem falschen slot zugewiesen, da sie auf beide slots passen und dann automatisch zu erst der obligatorische slot gefüllt wird, die eingabe aber eigentlich in den Optionalen slot gehört.
+Gut geklappt hat das Implementieren der Schnittstelle zur API und das Erstellen eines Dialogs. Die API stellt Informationen über das aktuelle Wetter, das Wetter der folgenden 48 Stunden (stündlich) und das Wetter der nächsten sieben Tage (täglich) an einem durch Längen- und Breitengrade spezifizierten Ort bereit. Wir haben bis jetzt implementiert, dass man für den aktuellen Tag und die nächsten sieben Tage nach dem Wetter allgemein, nach Schnee, Regen und Sonnenauf-/untergangszeiten fragen kann. Außerdem kann für Städte, bestimmte Bezirke, sowie konkrete Orte (wie z.B. Wahrzeichen) gefragt werden, sofern diese Alexa bekannt sind. Falls dieser Slot von den Benutzer*innen nicht gefüllt wird haben wir den Dialog erstellt. 
+
+Was könnte noch gemacht werden, um System zu verbessern? 
+Das System ist derzeit sehr unflexibel was Benutzer*Innen Anfragen betrifft und kann nur sehr spezifisch und Grundlegende Fragen nach dem Wetter beantworten. Das Erstellen weiterer Intents würde es dem Skill ermöglichen auf mehr Benutzer*Innen Anfragen zu Antworten, z.B Fragen nach Zeiträumen (Wochenende), mehrere Tagen gleichzeitig erfragen ( wie ist das Wetter Samstag und Sonntag), aber auch Vergleiche (ist das Wetter Montag oder Dienstag besser, welcher Tag nächste Woche wird der schönste) oder “Wann” Fragen (Wann scheint nächste Woche die Sonne). Auch sind weitere Funktionalitäten zur Verbesserung des Skills denkbar, wie  das spezifische Erfragen von UV Werten oder der Temperatur, sofern die API diese liefern kann.
+Ebenfalls wäre das System Benutzerfreundlicher hätte man Zugriff auf den Standort der Benutzer*Innen, zum jetzigen Stand muss der Ort durch einen Dialog gefüllt werden, wird dieser nicht von Benutzer*Innen genannt.
+
+
+
+Wie war Teamarbeit?
+ 
+Die Teamarbeit hat sehr gut geklappt. Die Teamsitzungen waren immer sehr produktiv, und haben per Zoom und auch in Person stattgefunden. Es gab keine Probleme bei der Verteilung von Arbeit und auch Entscheidungen konnten schnell und problemlos getroffen werden. Die verteilte Arbeit ist immer zeitig erledigt worden. Aufgetretene Probleme wurden diskutiert und es hat sich immer eine Lösung gefunden. Alle Teammitglieder waren motiviert und hatten Interesse und Freude an dem Projekt, was positiv zur Teamarbeit beigetragen hat.  Es war eine sehr positive Erfahrung in einem motivierten zweier Team zu arbeiten und zu erleben dass Arbeitsteilung sehr gut funktionieren kann. 
+
+
+
+Was haben Sie gelernt über die Organisation von Teamarbeit?
+
+Die Nutzung von GitHub, war sehr sinnvoll und wichtig für eine gut funktionierende Teamarbeit. Eine gute und faire Aufteilung von Aufgaben, am besten nach Interesse und danach wie viel Zeit eine Person bis zum ‘Fälligkeitsdatum’ hat kann die Arbeit sehr erleichtern. Da durch Arbeitsteilung die Teammitglieder oft zu verschiedenen Zeitpunkten an den Aufgaben sitzen kann es hilfreich sein, wenn man auch mal spontan auf Fragen reagieren kann, aber es muss gleichzeitig Verständnis dafür geben, dass nicht alle immer für die Arbeit Zeit haben und erreichbar sind. Den aktuellen Stand und die zukünftigen Schritte regelmäßig upzudaten ist auch wichtig für einen guten Workflow. Dies lief bei uns meistens mündlich ab und wurde selten schriftlich festgehalten. Da Teamarbeit zu zweit zu organisieren wahrscheinlich sehr weniger kompliziert, als mit mehr Leuten, wären schriftliche Protokolle in einem größeren Team sinnvoller.
+
