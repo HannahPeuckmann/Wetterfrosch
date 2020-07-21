@@ -274,7 +274,6 @@ class RegenIntentHandler(AbstractRequestHandler):
                     timestamp = day['dt']
                     date_of_day = datetime.datetime.fromtimestamp(timestamp)
                     if date_of_day.date() == zeit:
-                        print('date_of_day == Zeit')
                         logging.info(day)
                         if day["weather"][0]['main'] == 'Rain':
                             speech = ('Ja. {} regnet es in {}. '
@@ -295,7 +294,6 @@ class RegenIntentHandler(AbstractRequestHandler):
                         handler_input.response_builder.speak(speech).ask(reprompt).set_should_end_session(False)
                         return handler_input.response_builder.response
                     else:
-                        print('else')
                         speech = ('Ich kenne leider nur die Vorhersagen für'
                                   ' die nächsten sieben Tage')
         except Exception as e:
@@ -458,7 +456,7 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
         # type: (HandlerInput, Exception) -> Response
         logging.error(exception, exc_info=True)
 
-        speech = "Sorry, I can't understand the command. Please say again."
+        speech = "Es tut mir leid, diese Anfrage kann ich leider nicht beantworten"
         handler_input.response_builder.speak(speech).ask(speech)
         return handler_input.response_builder.response
 
