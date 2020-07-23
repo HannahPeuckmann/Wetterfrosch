@@ -66,27 +66,6 @@ class LaunchRequestHandler(AbstractRequestHandler):
         return handler_input.response_builder.response
 
 
-class InProgressIntentHandler(AbstractRequestHandler):
-    def can_handle(self, handler_input):
-        return (is_intent_name("RegenIntent" or "WetterIntent" or "SonnenuntergangIntent")(handler_input)
-                and handler_input.request_envelope.request.dialog_state != DialogState.COMPLETED)
-
-    def handle(self, handler_input):
-        current_intent = handler_input.request_envelope.request.intent
-        for slot_name, current_slot in six.iteritems(
-            current_intent.slots):
-            if slot_name == "ort":
-                if (current_slot.confirmation_status != SlotConfirmationStatus.CONFIRMED
-                        and current_slot.resolutions
-                        and current_slot.resolutions.resolutions_per_authority[0]):
-                    if current_slot.resolutions.resolutions_per_authority[0].status.code == StatusCode.ER_SUCCESS_MATCH:
-                        return handler_input.response_builder.add_directive(
-                                ElicitSlotDirective(slot_to_elicit=current_slot.name)
-                                ).response
-                else:
-                    logging.info(current_slot.confirmation_status)
-
-
 class WetterIntentHandler(AbstractRequestHandler):
     """Handler for Wetter Intent."""
 
@@ -566,7 +545,6 @@ def speech_day(n_asked_for, n_current):
 
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(WetterIntentHandler())
-sb.add_request_handler(InProgressIntentHandler())
 sb.add_request_handler(RegenIntentHandler())
 sb.add_request_handler(SchneeIntentHandler())
 sb.add_request_handler(SonnenuntergangIntentHandler())
